@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket de Venta</title>
+    <style>
+        #ticket-content {
+            width: 80mm; /* Ancho del papel */
+            font-family: monospace; /* Fuente típica para tickets */
+            font-size: 12px; /* Tamaño cómodo para tickets de 80mm */
+            line-height: 1.4;
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        #ticket-content h2, #ticket-content p {
+            text-align: center;
+            margin: 5px 0;
+        }
+        #ticket-content hr {
+            border: 1px dashed black;
+            margin: 8px 0;
+        }
+        #ticket-content table {
+            width: 100%;
+            font-size: 12px;
+            border-collapse: collapse;
+        }
+        #ticket-content th, #ticket-content td {
+            text-align: left;
+            padding: 2px 0;
+        }
+        #ticket-content .total-line {
+            text-align: right;
+            font-size: 14px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div id="ticket-content">
+    <h2>Horepos</h2>
+    <p>Gracias por su compra</p>
+    <p>Fecha: <span id="fecha-venta"></span></p>
+    <hr>
+    <table>
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cant</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody id="ticket-products">
+            <!-- Aquí se añadirán dinámicamente los productos -->
+        </tbody>
+    </table>
+    <hr>
+    <p class="total-line">Total: <span id="ticket-total"></span> €</p>
+    <p style="text-align: center;">¡Gracias por su compra!</p>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const finalizeSaleButton = document.getElementById('finalize-sale');
+        const ticketContent = document.getElementById('ticket-content');
+        const ticketProductsContainer = document.getElementById('ticket-products');
+
+        // Ejemplo de productos añadidos (estos datos se generarán dinámicamente en producción)
+        const productos = [
+            { nombre: "Producto A", cantidad: 2, precio: 10.0 },
+            { nombre: "Producto B", cantidad: 1, precio: 15.5 },
+            { nombre: "Producto C", cantidad: 3, precio: 7.0 },
+        ];
+
+        // Formatear y mostrar productos en el ticket
+        let totalVenta = 0;
+        productos.forEach(producto => {
+            const total = producto.cantidad * producto.precio;
+            totalVenta += total;
+            ticketProductsContainer.innerHTML += `
+                <tr>
+                    <td>${producto.nombre}</td>
+                    <td>${producto.cantidad}</td>
+                    <td>${total.toFixed(2)} €</td>
+                </tr>
+            `;
+        });
+
+        // Mostrar total de la venta
+        document.getElementById('ticket-total').innerText = totalVenta.toFixed(2);
+
+        // Mostrar fecha de la venta
+        const fechaActual = new Date();
+        document.getElementById('fecha-venta').innerText = fechaActual.toLocaleString();
+
+        // Función para imprimir el ticket
+        function printTicket() {
+            const printWindow = window.open('', '_blank', 'width=400,height=800');
+            printWindow.document.write(`<html><body>${ticketContent.outerHTML}</body></html>`);
+            printWindow.document.close();
+            printWindow.print();
+            printWindow.close();
+        }
+
+        // Simular impresión en el botón (reemplazar con la lógica real)
+        finalizeSaleButton?.addEventListener('click', () => {
+            printTicket();
+        });
+    });
+</script>
+</body>
+</html>

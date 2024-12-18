@@ -1,0 +1,512 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    height: 100%;
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+
+
+/* Contenedor principal */
+.container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    position: fixed;
+    background-color: #fff;
+}
+
+/* Columna izquierda */
+.left-column {
+    display: flex;
+    flex-direction: column;
+    width: 40%;
+    padding: 10px;
+    overflow: hidden;
+    border-right: 2px solid #ddd;
+}
+
+/* Columna derecha */
+.right-column {
+    display: flex;
+    flex-direction: column;
+    width: 60%;
+    padding: 10px;
+    overflow: hidden;
+    border-left: 2px solid #ddd;
+}
+
+/* Sección superior e inferior dentro de la columna izquierda */
+.left-top {
+    flex-grow: 1;
+    min-height: 60%;
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+}
+
+.left-bottom {
+    flex-grow: 1;
+    min-height: 40%;
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+}
+
+/* Sección superior e inferior dentro de la columna derecha */
+.right-top {
+    flex-grow: 1;
+    min-height: 70%;
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+}   #client-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    width: 350px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.modal-content select {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    margin: 15px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+
+.modal-content button {
+    padding: 12px 25px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.modal-content button:hover {
+    background-color: #0056b3;
+}
+
+.modal-content button:focus {
+    outline: none;
+}
+
+.right-bottom {
+    flex-grow: 1;
+    min-height: 30%;
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+}
+
+/* Teclado */
+.keyboard {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#screen {
+    width: 100%;
+    padding: 10px;
+    font-size: 1.2em;
+    text-align: right;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.keyboard div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+.keyboard button {
+    flex: 1 1 calc(20% - 10px);
+    padding: 15px;
+    font-size: 1.1em;
+    color: #fff;
+    background-color: #4CAF50;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.keyboard button:hover {
+    background-color: #45a049;
+}
+
+.keyboard .borrar {
+    flex: 1 1 100%;
+    background-color: #f44336;
+}
+
+.keyboard .borrar:hover {
+    background-color: #e53935;
+}
+
+/* Estilo específico para los botones comunes */
+.common-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+.common-buttons button {
+    flex: 1 1 20%;
+    padding: 10px;
+    font-size: 1em;
+    color: #fff;
+    background-color: #007BFF;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    text-align: center;
+}
+
+.common-buttons button:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+/* Botón "Caja" */
+#finalize-sale {
+    flex: 1 1 100%;
+    background-color: #28a745;
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 15px;
+}
+
+#finalize-sale:hover {
+    background-color: #218838;
+}
+
+/* Estilo para las tarjetas de producto */
+#product-cards-container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px;
+    justify-items: center;
+    padding: 10px;
+}
+
+.product-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+    width: 100%;
+}
+
+.product-card h3 {
+    font-size: 1.1em;
+    margin-bottom: 10px;
+}
+
+.product-card p {
+    font-size: 1em;
+    color: #555;
+}
+
+.product-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsividad */
+@media (max-width: 1024px) {
+    #product-cards-container {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    #product-cards-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    #product-cards-container {
+        grid-template-columns: repeat(1, 1fr);
+    }
+}
+
+/* Ocultar la paginación si no está activa */
+.pagination {
+    display: none;
+}
+#product-table {
+width: 100%;
+border-collapse: collapse;
+margin-top: 10px;
+background-color: #fff;
+box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+border-radius: 8px;
+overflow: hidden;
+}
+
+#product-table thead {
+background-color: #007BFF;
+color: white;
+text-align: left;
+font-size: 1em;
+}
+
+#product-table th, #product-table td {
+padding: 10px 15px;
+border-bottom: 1px solid #ddd;
+}
+
+#product-table tbody tr:nth-child(odd) {
+background-color: #f9f9f9;
+}
+
+#product-table tbody tr:nth-child(even) {
+background-color: #fff;
+}
+
+#product-table tbody tr:hover {
+background-color: #f1f1f1;
+cursor: pointer;
+}
+
+.total-container {
+margin-top: 15px;
+padding: 10px;
+font-size: 1.2em;
+background-color: #f9f9f9;
+border: 1px solid #ddd;
+border-radius: 8px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+#product-table {
+width: 100%;
+border-collapse: collapse;
+}
+
+#product-table thead {
+position: sticky;
+top: 0;
+background-color: #007BFF;
+color: white;
+z-index: 1;
+}
+
+#product-table tbody {
+display: block;
+max-height: 400px;
+overflow-y: auto;
+}
+
+#product-table tr {
+display: table;
+width: 100%;
+table-layout: fixed;
+}
+/* Botones principales */
+.action-card {
+    display: inline-block;
+    text-align: center;
+    padding: 20px;
+    width: 200px;
+    background-color: #ecf0f1;
+    color: #34495e;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-decoration: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+.total-container strong {
+color: #333;
+}
+/* Estilo para el botón de eliminar */
+.keyboard .borrar {
+flex: 1 1 100%;
+background-color: #f44336; /* Color rojo para el botón de eliminar */
+font-size: 1.3em; /* Aumentamos el tamaño de la fuente */
+font-weight: bold;
+padding: 15px;
+border-radius: 8px;
+color: white;
+display: flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+transition: background-color 0.3s, transform 0.2s;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra para darle un efecto de profundidad */
+}
+
+.keyboard .borrar:hover {
+background-color: #d32f2f; /* Rojo más oscuro cuando pasa el mouse */
+transform: scale(1.05); /* Efecto de aumento al pasar el mouse */
+}
+/* Estilo para el botón de eliminar dentro de la tabla */
+#product-table .btn-eliminar {
+background-color: #f44336; /* Color rojo */
+color: white;
+font-size: 1.1em;
+padding: 8px 12px;
+border: none;
+border-radius: 8px;
+cursor: pointer;
+transition: background-color 0.3s, transform 0.2s;
+display: flex;
+align-items: center;
+justify-content: center;
+box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+}
+
+#product-table .btn-eliminar:hover {
+background-color: #d32f2f; /* Color rojo más oscuro al pasar el cursor */
+transform: scale(1.05); /* Efecto de aumento al pasar el mouse */
+}
+
+/* Icono dentro del botón eliminar en la tabla */
+#product-table .btn-eliminar::before {
+content: "\1F5D1"; /* Icono de la papelera */
+font-size: 1.2em; /* Aumentamos el tamaño del icono */
+margin-right: 5px; /* Separación entre el icono y el texto */
+}
+
+/* Texto dentro del botón */
+#product-table .btn-eliminar span {
+display: none; /* Si se muestra el icono, ocultamos el texto */
+}
+
+/* Icono dentro del botón de eliminar */
+.keyboard .borrar::before {
+content: "\1F5D1"; /* Icono de la papelera */
+margin-right: 10px; /* Separación entre el icono y el texto */
+}
+
+/* Texto adicional si el icono no aparece */
+.keyboard .borrar span {
+display: none;
+}
+
+.total-container span {
+font-size: 1.5em;
+font-weight: bold;
+color: #007BFF;
+}
+/* Estilo para el botón de eliminar dentro de la tabla */
+#product-table .btn-eliminar {
+background-color: #f44336; /* Color rojo */
+color: white;
+font-size: 1.1em;
+padding: 8px 12px;
+border: none;
+border-radius: 8px;
+cursor: pointer;
+transition: background-color 0.3s, transform 0.2s;
+display: flex;
+align-items: center;
+justify-content: center;
+box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+}
+
+#product-table .btn-eliminar:hover {
+background-color: #d32f2f; /* Color rojo más oscuro al pasar el cursor */
+transform: scale(1.05); /* Efecto de aumento al pasar el mouse */
+}
+
+/* Icono dentro del botón eliminar en la tabla */
+#product-table .btn-eliminar::before {
+content: "\1F5D1"; /* Icono de la papelera */
+font-size: 1.5em; /* Aumentamos el tamaño del icono */
+margin-right: 0; /* Elimina cualquier separación */
+}
+
+/* Texto dentro del botón, lo ocultamos */
+#product-table .btn-eliminar span {
+display: none; /* Ocultamos el texto de eliminar */
+}/* Estilo para el botón de eliminar dentro de la tabla */
+#product-table .btn-eliminar {
+background-color: #f44336; /* Color rojo */
+color: white;
+font-size: 1.1em;
+padding: 8px 12px;
+border: none;
+border-radius: 8px;
+cursor: pointer;
+transition: background-color 0.3s, transform 0.2s;
+display: flex;
+align-items: center;
+justify-content: center;
+box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+}
+
+#product-table .btn-eliminar:hover {
+background-color: #d32f2f; /* Color rojo más oscuro al pasar el cursor */
+transform: scale(1.05); /* Efecto de aumento al pasar el mouse */
+}
+
+/* Icono dentro del botón eliminar en la tabla */
+#product-table .btn-eliminar::before {
+content: "\1F5D1"; /* Icono de la papelera */
+font-size: 1.5em; /* Aumentamos el tamaño del icono */
+margin-right: 0; /* Elimina cualquier separación */
+}
+
+/* Texto dentro del botón, lo ocultamos */
+#product-table .btn-eliminar span {
+display: none; /* Ocultamos el texto de eliminar */
+}
+

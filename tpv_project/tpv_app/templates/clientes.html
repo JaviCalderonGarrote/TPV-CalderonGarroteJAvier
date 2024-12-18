@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Clientes</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        nav {
+            background-color: #34495e;
+            color: #fff;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: background-color 0.3s;
+        }
+
+        nav a:hover {
+            background-color: #1abc9c;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            padding: 10px 0;
+        }
+
+        .pagination a {
+            color: #34495e;
+            font-weight: bold;
+            text-decoration: none;
+            padding: 8px 16px;
+            margin: 0 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            transition: background-color 0.3s;
+        }
+
+        .pagination a:hover {
+            background-color: #1abc9c;
+            color: white;
+        }
+
+        .pagination .disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .pagination .current {
+            background-color: #1abc9c;
+            color: white;
+        }
+
+        .modal-body {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            width: 90%;
+            margin: auto;
+        }
+
+        .form-row .form-group {
+            width: 48%;
+            margin-right: 4%;
+        }
+
+        .form-row .form-group:last-child {
+            margin-right: 0;
+        }
+
+        .form-group input {
+            font-size: 14px;
+        }
+
+        table th, table td {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div>
+            <a href="{% url 'home' %}">Volver al Home</a>
+        </div>
+        <div>
+            Usuario: {{ usuario.username|default:"Invitado" }}
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="mt-4">Gestión de Clientes</h1>
+
+        <button class="btn btn-primary mb-3" data-toggle="modal" data-target="#crearClienteModal">
+            Crear Cliente
+        </button>
+
+        <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Nombre Empresa</th>
+                    <th>Nombre Contacto</th>
+                    <th>Teléfono</th>
+                    <th>Email</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cliente in page_obj.object_list %}
+                <tr>
+                    <td>{{ cliente.nombre_empresa }}</td>
+                    <td>{{ cliente.nombre_contacto }}</td>
+                    <td>{{ cliente.telefono_contacto }}</td>
+                    <td>{{ cliente.email_contacto }}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#crearClienteModal"
+                            data-id="{{ cliente.id_cliente }}" data-nombre_empresa="{{ cliente.nombre_empresa|escape }}"
+                            data-nombre_contacto="{{ cliente.nombre_contacto|escape }}"
+                            data-direccion_fiscal="{{ cliente.direccion_fiscal|escape }}"
+                            data-telefono_contacto="{{ cliente.telefono_contacto|escape }}"
+                            data-email_contacto="{{ cliente.email_contacto|escape }}"
+                            data-nif_cif="{{ cliente.nif_cif|escape }}" data-pagina_web="{{ cliente.pagina_web|escape }}">
+                            Editar
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="confirmarEliminacion('{{ cliente.id_cliente }}')">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">No hay clientes disponibles.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if page_obj.has_other_pages %}
+        <div class="pagination">
+            <span class="step-links">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+                {% else %}
+                <span class="disabled">Anterior</span>
+                {% endif %}
+
+                <span class="current">
+                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}.
+                </span>
+
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+                {% else %}
+                <span class="disabled">Siguiente</span>
+                {% endif %}
+            </span>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="modal fade" id="crearClienteModal" tabindex="-1" aria-labelledby="crearClienteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="{% url 'crear_cliente' %}" id="formCliente">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="crearClienteModalLabel">Crear Cliente</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="id_cliente" name="id_cliente">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="nombre_empresa">Nombre de la Empresa</label>
+                                <input type="text" class="form-control" id="nombre_empresa" name="nombre_empresa" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="nombre_contacto">Nombre de Contacto</label>
+                                <input type="text" class="form-control" id="nombre_contacto" name="nombre_contacto">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="direccion_fiscal">Dirección Fiscal</label>
+                                <input type="text" class="form-control" id="direccion_fiscal" name="direccion_fiscal">
+                            </div>
+                            <div class="form-group">
+                                <label for="telefono_contacto">Teléfono de Contacto</label>
+                                <input type="text" class="form-control" id="telefono_contacto" name="telefono_contacto">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="email_contacto">Email de Contacto</label>
+                                <input type="email" class="form-control" id="email_contacto" name="email_contacto">
+                            </div>
+                            <div class="form-group">
+                                <label for="nif_cif">NIF/CIF</label>
+                                <input type="text" class="form-control" id="nif_cif" name="nif_cif" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="pagina_web">Página Web</label>
+                            <input type="url" class="form-control" id="pagina_web" name="pagina_web">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        $('#crearClienteModal').on('show.bs.modal', function(event) {
+            var button = $(event.relatedTarget);
+            var modal = $(this);
+
+            var id = button.data('id') || '';
+            var nombre_empresa = button.data('nombre_empresa') || '';
+            var nombre_contacto = button.data('nombre_contacto') || '';
+            var direccion_fiscal = button.data('direccion_fiscal') || '';
+            var telefono_contacto = button.data('telefono_contacto') || '';
+            var email_contacto = button.data('email_contacto') || '';
+            var nif_cif = button.data('nif_cif') || '';
+            var pagina_web = button.data('pagina_web') || '';
+
+            modal.find('.modal-title').text(id ? 'Editar Cliente' : 'Crear Cliente');
+            modal.find('#id_cliente').val(id);
+            modal.find('#nombre_empresa').val(nombre_empresa);
+            modal.find('#nombre_contacto').val(nombre_contacto);
+            modal.find('#direccion_fiscal').val(direccion_fiscal);
+            modal.find('#telefono_contacto').val(telefono_contacto);
+            modal.find('#email_contacto').val(email_contacto);
+            modal.find('#nif_cif').val(nif_cif);
+            modal.find('#pagina_web').val(pagina_web);
+
+            var formAction = id ? "{% url 'editar_cliente' '0' %}".replace('0', id) : "{% url 'crear_cliente' %}";
+            $('#formCliente').attr('action', formAction);
+        });
+
+        $('#formCliente').on('submit', function(event) {
+            event.preventDefault();
+
+            $.ajax({
+                type: 'POST',
+                url: $(this).attr('action'),
+                data: $(this).serialize(),
+                success: function(response) {
+                    Swal.fire('¡Éxito!', 'El cliente ha sido guardado correctamente.', 'success').then(() => {
+                        location.reload();
+                    });
+                },
+                error: function() {
+                    Swal.fire('Error', 'Hubo un problema al guardar el cliente.', 'error');
+                }
+            });
+        });
+
+        function confirmarEliminacion(id) {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: '¡No podrás revertir esto!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminarlo!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "{% url 'borrar_cliente' '0' %}".replace('0', id),
+                        type: 'GET',
+                        success: function() {
+                            Swal.fire('¡Eliminado!', 'El cliente ha sido eliminado.', 'success').then(() => {
+                                location.reload();
+                            });
+                        },
+                        error: function() {
+                            Swal.fire('Error', 'Hubo un problema al eliminar el cliente.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

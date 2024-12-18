@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle Venta</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        nav {
+            background-color: #34495e;
+            color: #fff;
+            padding: 15px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: background-color 0.3s;
+        }
+
+        nav a:hover {
+            background-color: #1abc9c;
+        }
+
+        .action-cards-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+
+        .action-card {
+            display: inline-block;
+            text-align: center;
+            padding: 20px;
+            width: 200px;
+            background-color: #ecf0f1;
+            color: #34495e;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-decoration: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .grafico-container, .tabla-container {
+            display: none;
+            margin-top: 40px;
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Estilo para el gráfico de clientes */
+        #clientesMasVentasChart {
+            width: 100%;
+            max-width: 400px;  /* Tamaño reducido aún más */
+            height: 250px;     /* Ajuste de altura */
+            margin: 0 auto;    /* Centrado */
+        }
+
+        .center-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .table {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .table th, .table td {
+            padding: 10px;
+            text-align: center;
+        }
+
+        .table-bordered {
+            border: 1px solid #ddd;
+            border-collapse: collapse;
+        }
+
+        .thead-dark {
+            background-color: #343a40;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div>
+            <a href="{% url 'home' %}">Volver al Home</a>
+        </div>
+        <div>
+            Usuario: {{ usuario.username|default:"Invitado" }}
+        </div>
+    </nav>
+
+    <div class="center-content">
+        <div class="action-cards-container">
+            <a href="javascript:void(0);" id="show-chart" class="action-card">Productos Más Vendidos</a>
+            <a href="javascript:void(0);" id="show-chart-clientes" class="action-card">Cliente con Más Ventas</a>
+            <a href="javascript:void(0);" id="show-chart-servicios" class="action-card">Servicios con Más Ventas</a>
+            <a href="javascript:void(0);" id="show-table" class="action-card">Ver Detalles de Venta</a>
+        </div>
+
+        <!-- Contenedor del gráfico de productos -->
+        <div id="grafico-container" class="grafico-container">
+            <canvas id="productosMasVendidosChart"></canvas>
+        </div>
+
+        <!-- Contenedor del gráfico de clientes -->
+        <div id="grafico-clientes-container" class="grafico-container">
+            <canvas id="clientesMasVentasChart"></canvas>
+        </div>
+
+        <!-- Contenedor del gráfico de servicios -->
+        <div id="grafico-servicios-container" class="grafico-container">
+            <canvas id="serviciosMasVentasChart"></canvas>
+        </div>
+
+        <!-- Contenedor de tabla de detalles de venta -->
+        <div id="tabla-container" class="tabla-container">
+            <h1>Detalles de Venta</h1>
+            <table class="table table-bordered table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Subtotal</th>
+                        <th>Venta ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detalle in page_obj %}
+                        <tr>
+                            <td>{{ detalle.id_detalle }}</td>
+                            <td>{{ detalle.id_producto.nombre }}</td>
+                            <td>{{ detalle.cantidad }}</td>
+                            <td>{{ detalle.precio_unitario }}</td>
+                            <td>{{ detalle.subtotal }}</td>
+                            <td>{{detalle.id_venta_id}}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No hay detalles de venta disponibles.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Paginación -->
+            <div class="step-links">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+                {% else %}
+                    <span class="disabled">Anterior</span>
+                {% endif %}
+
+                <span class="">
+                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}.
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+                {% else %}
+                    <span class="disabled">Siguiente</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Agregar Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // Variables del backend insertadas dinámicamente
+        const productosLabels = {{ productos_labels|safe }};
+        const productosValues = {{ productos_values|safe }};
+        const clientesLabels = {{ clientes_labels|safe }};
+        const clientesValues = {{ clientes_values|safe }};
+        const serviciosLabels = {{ servicios_labels|safe }};
+        const serviciosValues = {{ servicios_values|safe }};
+
+        // Inicializar los gráficos
+        let productosMasVendidosChart;
+        let clientesMasVentasChart;
+        let serviciosMasVentasChart;
+
+        function crearGraficoProductos() {
+            const ctx = document.getElementById('productosMasVendidosChart').getContext('2d');
+            if (productosMasVendidosChart) {
+                productosMasVendidosChart.destroy();
+            }
+            productosMasVendidosChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: productosLabels,
+                    datasets: [{
+                        label: 'Cantidad Vendida',
+                        data: productosValues,
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            'rgba(153, 102, 255, 0.2)',
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(255, 159, 64, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(255, 159, 64, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Productos Más Vendidos'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function crearGraficoClientes() {
+            const ctx = document.getElementById('clientesMasVentasChart').getContext('2d');
+            if (clientesMasVentasChart) {
+                clientesMasVentasChart.destroy();
+            }
+            clientesMasVentasChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: clientesLabels,
+                    datasets: [{
+                        label: 'Ventas por Cliente',
+                        data: clientesValues,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(153, 102, 255, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Clientes con Más Ventas'
+                        }
+                    }
+                }
+            });
+        }
+
+        function crearGraficoServicios() {
+            const ctx = document.getElementById('serviciosMasVentasChart').getContext('2d');
+            if (serviciosMasVentasChart) {
+                serviciosMasVentasChart.destroy();
+            }
+            serviciosMasVentasChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: serviciosLabels,
+                    datasets: [{
+                        label: 'Cantidad de Ventas',
+                        data: serviciosValues,
+                        backgroundColor: [
+                            'rgba(153, 102, 255, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(255, 159, 64, 0.2)',
+                            'rgba(255, 99, 132, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(255, 99, 132, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Servicios con Más Ventas'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Función para mostrar u ocultar los gráficos
+        document.getElementById('show-chart').addEventListener('click', function() {
+            document.getElementById('grafico-container').style.display = 'block';
+            document.getElementById('grafico-clientes-container').style.display = 'none';
+            document.getElementById('grafico-servicios-container').style.display = 'none';
+            document.getElementById('tabla-container').style.display = 'none';
+            crearGraficoProductos();
+        });
+
+        document.getElementById('show-chart-clientes').addEventListener('click', function() {
+            document.getElementById('grafico-container').style.display = 'none';
+            document.getElementById('grafico-clientes-container').style.display = 'block';
+            document.getElementById('grafico-servicios-container').style.display = 'none';
+            document.getElementById('tabla-container').style.display = 'none';
+            crearGraficoClientes();
+        });
+
+        document.getElementById('show-chart-servicios').addEventListener('click', function() {
+            document.getElementById('grafico-container').style.display = 'none';
+            document.getElementById('grafico-clientes-container').style.display = 'none';
+            document.getElementById('grafico-servicios-container').style.display = 'block';
+            document.getElementById('tabla-container').style.display = 'none';
+            crearGraficoServicios();
+        });
+
+        document.getElementById('show-table').addEventListener('click', function() {
+            document.getElementById('grafico-container').style.display = 'none';
+            document.getElementById('grafico-clientes-container').style.display = 'none';
+            document.getElementById('grafico-servicios-container').style.display = 'none';
+            document.getElementById('tabla-container').style.display = 'block';
+        });
+
+        // Mantener la tabla visible tras la paginación
+        document.querySelectorAll('.step-links a').forEach(link => {
+            link.addEventListener('click', function() {
+                document.getElementById('tabla-container').style.display = 'block';
+            });
+        });
+
+    </script>
+</body>
+</html>

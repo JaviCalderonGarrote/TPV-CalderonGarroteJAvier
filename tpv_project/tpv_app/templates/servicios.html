@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Servicios</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css">
+    <style>
+        /* Estilos de la barra de navegación */
+        nav {
+            background-color: #34495e;
+            color: #fff;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: background-color 0.3s;
+        }
+
+        nav a:hover {
+            background-color: #1abc9c;
+        }
+
+        /* Estilos dinámicos para el estado */
+        .estado-abierto {
+            background-color: #d4edda;
+            color: #155724;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 6px;
+            padding: 4px;
+        }
+
+        .estado-cerrado {
+            background-color: #f8d7da;
+            color: #721c24;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 6px;
+            padding: 4px;
+        }
+
+        /* Estilos de la paginación */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            padding: 10px 0;
+        }
+
+        .pagination a {
+            color: #34495e;
+            font-weight: bold;
+            text-decoration: none;
+            padding: 8px 16px;
+            margin: 0 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            transition: background-color 0.3s;
+        }
+
+        .pagination a:hover {
+            background-color: #1abc9c;
+            color: white;
+        }
+
+        .pagination .disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .pagination .current {
+            background-color: #1abc9c;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Barra de navegación -->
+    <nav>
+        <div>
+            <a href="{% url 'home' %}">Volver al Home</a>
+        </div>
+        <div>
+            Usuario: {{ usuario.username }}
+        </div>
+    </nav>
+
+    <!-- Contenedor principal -->
+    <div class="container">
+        <h1 class="mt-4">Gestión de Servicios</h1>
+
+        <!-- Mensajes de error o éxito -->
+        {% if messages %}
+            <div class="alert alert-info mt-3">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Botón para crear nuevo servicio -->
+        <button class="btn btn-primary mb-3" data-toggle="modal" data-target="#crearServicioModal">
+            Crear Servicio
+        </button>
+
+        <!-- Tabla con la lista de servicios -->
+        <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Fecha Inicio</th>
+                    <th>Fecha Fin</th>
+                    <th>Cantidad Tickets</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for servicio in page_obj.object_list %}
+                <tr>
+                    <td>{{ servicio.id_servicio }}</td>
+                    <td>{{ servicio.nombre }}</td>
+                    <td>{{ servicio.fecha_inicio }}</td>
+                    <td>{{ servicio.fecha_fin|default:"-" }}</td>
+                    <td>{{ servicio.cantidad_tickets }}</td>
+                    <td class="{% if servicio.estado == 'abierto' %}estado-abierto{% else %}estado-cerrado{% endif %}">
+                        {{ servicio.get_estado_display }}
+                    </td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#crearServicioModal"
+                                onclick="editarServicio('{{ servicio.id_servicio }}', '{{ servicio.nombre }}', '{{ servicio.estado }}')">
+                            Editar
+                        </button>
+                        <a href="{% url 'borrar_servicio' servicio.id_servicio %}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este servicio?');">
+                            Eliminar
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">No hay servicios disponibles.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        {% if page_obj.has_other_pages %}
+        <div class="pagination">
+            <span class="step-links">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+                {% else %}
+                    <span class="disabled">Anterior</span>
+                {% endif %}
+
+                <span class="">
+                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}.
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+                {% else %}
+                    <span class="disabled">Siguiente</span>
+                {% endif %}
+            </span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Modal para crear/editar servicio -->
+    <div class="modal fade" id="crearServicioModal" tabindex="-1" aria-labelledby="crearServicioModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" action="{% url 'crear_servicio' %}">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="crearServicioModalLabel">Crear Servicio</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="id_servicio" name="id_servicio">
+                        <div class="form-group">
+                            <label for="nombre">Nombre</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="estado">Estado</label>
+                            <select class="form-control" id="estado" name="estado" required>
+                                <option value="abierto">Abierto</option>
+                                <option value="cerrado">Cerrado</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery y Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Función para rellenar los datos del modal al editar
+        function editarServicio(id, nombre, estado) {
+            document.getElementById('crearServicioModalLabel').innerText = "Editar Servicio";
+            document.getElementById('id_servicio').value = id;
+            document.getElementById('nombre').value = nombre;
+            document.getElementById('estado').value = estado;
+            document.querySelector('form').action = `{% url 'editar_servicio' 0 %}`.replace('0', id);
+        }
+
+        // Limpiar el formulario al abrir el modal para crear
+        $('#crearServicioModal').on('hidden.bs.modal', function () {
+            document.getElementById('crearServicioModalLabel').innerText = "Crear Servicio";
+            document.getElementById('id_servicio').value = '';
+            document.getElementById('nombre').value = '';
+            document.getElementById('estado').value = 'abierto';
+            document.querySelector('form').action = "{% url 'crear_servicio' %}";
+        });
+    </script>
+</body>
+
+</html>

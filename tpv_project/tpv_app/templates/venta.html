@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ventas</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+<style>
+.transparent-button {
+    position: fixed; /* Fijo para que siempre esté visible */
+    top: 10px; /* Distancia desde la parte superior */
+    left: 10px; /* Distancia desde la izquierda */
+    width: 50px; /* Ancho del botón */
+    height: 500px; /* Alto del botón */
+    background-color: transparent; /* Color de fondo transparente */
+    border: none; /* Sin borde */
+    z-index: 1000; /* Asegúrate de que esté encima de otros elementos */
+    cursor: pointer; /* Cambia el cursor para indicar que es clickeable */
+}
+.transparent-button:hover {
+    background-color: rgba(0, 0, 0, 0.1); /* Fondo semi-transparente al pasar el ratón */
+    border-radius: 50%; /* Redondea los bordes */
+}  .selectedCategory {
+    width: 100%; /* Ajusta el ancho del select al contenedor */
+    padding: 10px; /* Espaciado interno */
+    border: 2px solid #007bff; /* Borde azul */
+    border-radius: 5px; /* Bordes redondeados */
+    background-color: #f8f9fa; /* Fondo claro */
+    color: #0056b3; /* Texto azul oscuro */
+    font-size: 16px; /* Tamaño de fuente */
+    font-weight: bold; /* Texto en negrita */
+    cursor: pointer; /* Cambia el cursor para indicar interactividad */
+    transition: all 0.3s ease; /* Transiciones suaves */
+}
+
+.selectedCategory:hover {
+    background-color: #e9ecef; /* Cambia el color de fondo al pasar el ratón */
+}
+
+.selectedCategory:focus {
+    outline: none; /* Elimina el borde predeterminado del navegador */
+    border-color: #0056b3; /* Borde azul más oscuro al estar enfocado */
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Efecto de sombra */
+}
+
+</style>
+<a href="{% url 'home' %}" class="transparent-button"></a>
+
+<div class="container">
+    <!-- Columna izquierda -->
+    <div class="left-column">
+        <div class="left-top">
+            <h2>Detalles de la Venta            <p><strong>Total:</strong> <span id="total-amount">0.00</span> €</p>
+            </h2>
+            <table id="product-table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="product-list">
+                    <!-- Los productos añadidos aparecerán aquí -->
+                </tbody>
+            </table>
+        </div>
+        <div class="left-bottom">
+            <div class="keyboard">
+                <input type="text" id="screen" readonly placeholder="Ingrese cantidad">
+                <div>
+                    <button>1</button>
+                    <button>2</button>
+                    <button>3</button>
+                    <button>4</button>
+                    <button>5</button>
+                    <button>6</button>
+                    <button>7</button>
+                    <button>8</button>
+                    <button>9</button>
+                    <button>0</button>
+                    <button class="borrar">Borrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Columna derecha -->
+    <div class="right-column">
+        <div class="right-top">
+            <h3>Seleccionar Producto <select id="category-select" class="selectedCategory">
+    <option value="all">Todas las categorías</option>
+    {% for categoria in categorias %}
+    <option value="{{ categoria.id_categoria }}">{{ categoria.nombre }}</option>
+    {% endfor %}
+</select></h3>   
+             <!-- Selector de categorías -->
+
+
+<!-- Contenedor de las tarjetas de productos -->
+<div id="product-cards-container">
+    {% for producto in productos %}
+    <div class="product-card" 
+         data-id="{{ producto.id_producto }}" 
+         data-name="{{ producto.nombre }}" 
+         data-price="{{ producto.precio }}" 
+         data-category="{{ producto.id_categoria_id }}">
+        <h3>{{ producto.nombre }}</h3>
+        <p>{{ producto.precio }} €</p>
+    </div>
+    {% endfor %}
+</div>
+
+        </div>
+        <div class="right-bottom">
+            <div class="common-buttons">
+                <button id="finalize-sale">Caja</button>
+                <button class="button-small" id="assign-client">Asignar Cliente</button>
+                <button class="button-small">Cambiar Precio</button>
+                <button class="button-small">Abrir Cajón</button>
+                <button class="button-small">Imprimir T</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="client-modal">
+    <div class="modal-content">
+        <h3>Seleccionar Cliente</h3>
+        <select id="client-select">
+            <option value="">Ninguno</option>
+            {% for cliente in clientes %}
+            <option value="{{ cliente.id_cliente }}">{{ cliente.nombre_empresa }}</option>
+            {% endfor %}
+        </select>
+        <button onclick="assignClient()">Aceptar</button>
+    </div>
+</div>
+
+<script>
+    document.getElementById('assign-client').addEventListener('click', () => {
+        document.getElementById('client-modal').style.display = 'flex';
+    });
+
+    // Función para cerrar el modal
+    function closeModal() {
+        document.getElementById('client-modal').style.display = 'none';
+    }
+
+    // Función para asignar el cliente seleccionado
+    function assignClient() {
+        const clientSelect = document.getElementById('client-select');
+        const selectedClient = clientSelect.value || null; // Si no hay cliente seleccionado, se asigna null
+
+        if (selectedClient) {
+            alert(`Cliente asignado: ${selectedClient}`);
+        }
+
+        closeModal();
+    }
+          
+    document.getElementById('category-select').addEventListener('change', (event) => {
+    const selectedCategory = event.target.value; // ID de la categoría seleccionada
+    const allProductCards = document.querySelectorAll('.product-card');
+
+    allProductCards.forEach(card => {
+        const productCategory = card.dataset.category; // ID de la categoría del producto
+
+        // Mostrar todos los productos si la categoría seleccionada es "all"
+        if (selectedCategory === "all" || productCategory === selectedCategory) {
+            card.style.display = "block";
+        } else {
+            card.style.display = "none";
+        }
+    });
+});
+
+    document.addEventListener("DOMContentLoaded", () => {
+        let currentQuantity = 0;
+        const productList = document.getElementById('product-list');
+        const totalAmount = document.getElementById('total-amount');
+        let productNames = [];
+        let quantities = [];
+        let prices = [];
+
+        // Manejo del teclado numérico
+        document.querySelectorAll('.keyboard button').forEach(button => {
+            button.addEventListener('click', () => {
+                const screen = document.getElementById('screen');
+                if (button.innerText === 'Borrar') {
+                    screen.value = screen.value.slice(0, -1);
+                    currentQuantity = parseInt(screen.value, 10) || 0; 
+                } else {
+                    screen.value = (screen.value || '') + button.innerText;
+                    currentQuantity = parseInt(screen.value, 10) || 0;
+                }
+            });
+        });
+
+        // Manejo de clics en las tarjetas de productos
+        document.querySelectorAll('.product-card').forEach(card => {
+            card.addEventListener('click', () => {
+                if (!currentQuantity || currentQuantity <= 0) currentQuantity = 1;
+
+                const name = card.dataset.name;
+                const price = parseFloat(card.dataset.price);
+                const total = currentQuantity * price;
+
+                const productIndex = productNames.indexOf(name);
+                if (productIndex !== -1) {
+                    quantities[productIndex] += currentQuantity;
+                    const updatedTotal = quantities[productIndex] * price;
+                    const row = productList.children[productIndex];
+                    row.querySelector('.quantity').innerText = quantities[productIndex];
+                    row.querySelector('.total').innerText = updatedTotal.toFixed(2) + ' €';
+                } else {
+                    const row = document.createElement('tr');
+                    row.dataset.id = card.dataset.id;
+                    row.innerHTML = `
+                        <td>${name}</td>
+                        <td class="quantity">${currentQuantity}</td>
+                        <td>${price.toFixed(2)} €</td>
+                        <td class="total">${total.toFixed(2)} €</td>
+                        <td><button class="btn-eliminar"></button></td>
+                    `;
+                    productList.appendChild(row);
+                    productNames.push(name);
+                    quantities.push(currentQuantity);
+                    prices.push(price);
+
+                    row.querySelector('.btn-eliminar').addEventListener('click', () => {
+                        const rowIndex = productNames.indexOf(name);
+                        if (rowIndex !== -1) {
+                            const amountToRemove = currentQuantity > 0 ? currentQuantity : 1;
+                            quantities[rowIndex] -= amountToRemove;
+                            if (quantities[rowIndex] <= 0) {
+                                productNames.splice(rowIndex, 1);
+                                quantities.splice(rowIndex, 1);
+                                prices.splice(rowIndex, 1);
+                                row.remove();
+                            } else {
+                                const updatedTotal = quantities[rowIndex] * prices[rowIndex];
+                                row.querySelector('.quantity').innerText = quantities[rowIndex];
+                                row.querySelector('.total').innerText = updatedTotal.toFixed(2) + ' €';
+                            }
+                        }
+                        updateTotal();
+                        currentQuantity = 0;
+                        document.getElementById('screen').value = '';
+                    });
+                }
+
+                updateTotal();
+                currentQuantity = 0;
+                document.getElementById('screen').value = '';
+            });
+        });
+
+        // Función para actualizar el total
+        function updateTotal() {
+            let newTotal = 0;
+            document.querySelectorAll('#product-list tr').forEach(row => {
+                const totalCell = row.querySelector('.total');
+                newTotal += parseFloat(totalCell.innerText.replace(' €', ''));
+            });
+            totalAmount.innerText = newTotal.toFixed(2);
+        }
+
+        // Manejo del botón para finalizar la venta
+        document.getElementById('finalize-sale').addEventListener('click', () => {
+            const clientSelect = document.getElementById('client-select');
+            const selectedClient = clientSelect.value || null;
+
+            const productIds = [];
+            const quantitiesToSend = [];
+
+            document.querySelectorAll('#product-list tr').forEach(row => {
+                productIds.push(row.dataset.id);
+                quantitiesToSend.push(row.querySelector('.quantity').innerText);
+            });
+
+            if (productIds.length === 0) {
+                alert('No se han añadido productos.');
+                return;
+            }
+
+            fetch("{% url 'crear_venta' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({
+                    id_cliente: selectedClient,
+                    producto_ids: productIds,
+                    cantidades: quantitiesToSend
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`Venta realizada exitosamente! ID: ${data.venta_id}`);
+                    productList.innerHTML = '';
+                    totalAmount.innerText = '0.00';
+                    productNames = [];
+                    quantities = [];
+                    prices = [];
+                    clientSelect.value = ""; 
+                } else {
+                    alert('Error al realizar la venta.');
+                }
+            })
+            .catch(error => console.error('Error al realizar la venta:', error));
+        });
+    });
+</script>
+</body>
+</html>

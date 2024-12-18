@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Estilos personalizados */
+        nav {
+            background-color: #34495e;
+            color: #fff;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: background-color 0.3s;
+        }
+
+        nav a:hover {
+            background-color: #1abc9c;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            padding: 10px 0;
+        }
+
+        .pagination a {
+            color: #34495e;
+            font-weight: bold;
+            text-decoration: none;
+            padding: 8px 16px;
+            margin: 0 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            transition: background-color 0.3s;
+        }
+
+        .pagination a:hover {
+            background-color: #1abc9c;
+            color: white;
+        }
+
+        .pagination .disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .pagination .current {
+            background-color: #1abc9c;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div>
+            <a href="{% url 'home' %}">Volver al Home</a>
+        </div>
+        <div>
+            Usuario: {{ usuario.username|default:"Invitado" }}
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="mt-4">Gestión de Usuarios</h1>
+
+        
+
+        <button class="btn btn-primary mb-3" data-toggle="modal" data-target="#crearUsuarioModal">
+            Crear Usuario
+        </button>
+
+        <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre de Usuario</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Rol</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usuario in page_obj.object_list %}
+                <tr>
+                    <td>{{ usuario.id }}</td>
+                    <td>{{ usuario.username }}</td>
+                    <td>{{ usuario.nombre }}</td>
+                    <td>{{ usuario.apellido }}</td>
+                    <td>{{ usuario.rol }}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#crearUsuarioModal"
+                                data-id="{{ usuario.id }}" data-username="{{ usuario.username }}"
+                                data-nombre="{{ usuario.nombre }}" data-apellido="{{ usuario.apellido }}"
+                                data-rol="{{ usuario.rol }}">
+                            Editar
+                        </button>
+                        <a href="{% url 'borrar_usuario' usuario.id %}" class="btn btn-danger btn-sm"
+                           onclick="return confirmarEliminacion('{{ usuario.id }}');">
+                           Eliminar
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">No hay usuarios disponibles.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        {% if page_obj.has_other_pages %}
+        <div class="pagination">
+            <span class="step-links">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+                {% else %}
+                    <span class="disabled">Anterior</span>
+                {% endif %}
+
+                <span class="">
+                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}.
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+                {% else %}
+                    <span class="disabled">Siguiente</span>
+                {% endif %}
+            </span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Modal para crear/editar usuario -->
+    <div class="modal fade" id="crearUsuarioModal" tabindex="-1" aria-labelledby="crearUsuarioModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" id="formUsuario" action="{% url 'crear_usuario' %}" onsubmit="return validarFormulario();">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="crearUsuarioModalLabel">Crear Usuario</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="id_usuario" name="id_usuario">
+                        <div class="form-group">
+                            <label for="username">Nombre de Usuario</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="nombre">Nombre</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="apellido">Apellido</label>
+                            <input type="text" class="form-control" id="apellido" name="apellido" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="rol">Rol</label>
+                            <select class="form-control" id="rol" name="rol" required>
+                                <option value="Administrador">Administrador</option>
+                                <option value="Vendedor">Vendedor</option>
+                            </select>
+                        </div>
+
+                        <!-- Campos de contraseña -->
+                        <div id="password-fields" class="d-none">
+                            <div class="form-group">
+                                <label for="password">Contraseña</label>
+                                <input type="password" class="form-control" id="password" name="password" minlength="4">
+                            </div>
+                            <div class="form-group">
+                                <label for="confirm_password">Confirmar Contraseña</label>
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                            </div>
+                        </div>
+
+                        <button type="button" id="togglePasswordFields" class="btn btn-secondary btn-sm d-none">Cambiar Contraseña</button>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function validarFormulario() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+
+            if (password.length > 0 && password.length < 4) {
+                Swal.fire('Error', 'La contraseña debe tener al menos 4 caracteres.', 'error');
+                return false;
+            }
+
+            if (password !== confirmPassword) {
+                Swal.fire('Error', 'Las contraseñas no coinciden.', 'error');
+                return false;
+            }
+
+            return true;
+        }
+
+        $('#crearUsuarioModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // El botón que abrió el modal
+            var modal = $(this); // Modal donde se abrirá
+
+            // Obtener los valores del botón
+            var id = button.data('id') || ''; // ID del usuario (si está vacío es para crear)
+            var username = button.data('username') || ''; // Nombre de usuario
+            var nombre = button.data('nombre') || ''; // Nombre del usuario
+            var apellido = button.data('apellido') || ''; // Apellido
+            var rol = button.data('rol') || 'Vendedor'; // Rol del usuario
+
+            // Llenar los campos del formulario
+            modal.find('#id_usuario').val(id);
+            modal.find('#username').val(username);
+            modal.find('#nombre').val(nombre);
+            modal.find('#apellido').val(apellido);
+            modal.find('#rol').val(rol);
+
+            // Mostrar u ocultar los campos de contraseña
+            if (id) {
+                modal.find('#password-fields').addClass('d-none');
+                modal.find('#togglePasswordFields').removeClass('d-none');
+            } else {
+                modal.find('#password-fields').removeClass('d-none');
+                modal.find('#togglePasswordFields').addClass('d-none');
+            }
+        });
+
+        // Toggle de mostrar los campos de contraseña
+        $('#togglePasswordFields').on('click', function () {
+            $('#password-fields').toggleClass('d-none');
+        });
+
+        $('#formUsuario').on('submit', function(event) {
+            event.preventDefault();
+
+            if (!validarFormulario()) {
+                return;
+            }
+
+            var actionUrl = $(this).attr('action');
+            var methodType = 'POST';  // Adjust this based on your form action.
+
+            $.ajax({
+                type: methodType,
+                url: actionUrl,
+                data: $(this).serialize(),
+                success: function(response) {
+                    Swal.fire('¡Éxito!', 'El usuario ha sido guardado correctamente.', 'success').then(() => {
+                        location.reload();
+                    });
+                },
+                error: function() {
+                    Swal.fire('Error', 'Hubo un problema al guardar el usuario.', 'error');
+                }
+            });
+        });
+
+        function confirmarEliminacion(id) {
+            return Swal.fire({
+                title: '¿Estás seguro?',
+                text: '¡No podrás revertir esto!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminarlo!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Hacer la solicitud de eliminación después de la confirmación
+                    $.ajax({
+                        url: "{% url 'borrar_usuario' '0' %}".replace('0', id),
+                        type: 'GET',
+                        success: function() {
+                            // Si la eliminación es exitosa, mostrar el mensaje y recargar la página
+                            Swal.fire('¡Eliminado!', 'El usuario ha sido eliminado.', 'success').then(() => {
+                                location.reload();  // Recargar la página después de eliminar el usuario
+                            });
+                        },
+                        error: function() {
+                            // Si hay un error, mostrar el mensaje correspondiente
+                            Swal.fire('Error', 'Hubo un problema al eliminar el usuario.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+    </script>
+</body>
+
+</html>

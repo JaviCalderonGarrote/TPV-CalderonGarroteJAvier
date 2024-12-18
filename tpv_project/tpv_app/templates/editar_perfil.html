@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Perfil</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css">
+    <style>
+        nav {
+            background-color: #34495e;
+            color: #fff;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: background-color 0.3s;
+        }
+
+        nav a:hover {
+            background-color: #1abc9c;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            padding: 10px 0;
+        }
+
+        .pagination a {
+            color: #34495e;
+            font-weight: bold;
+            text-decoration: none;
+            padding: 8px 16px;
+            margin: 0 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            transition: background-color 0.3s;
+        }
+
+        .pagination a:hover {
+            background-color: #1abc9c;
+            color: white;
+        }
+
+        .pagination .disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .pagination .current {
+            background-color: #1abc9c;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav>
+        <div>
+            <a href="{% url 'home' %}">Volver al Home</a>
+        </div>
+        <div>
+            Usuario: {{ usuario.username|default:"Invitado" }}
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="mt-4">Editar Perfil</h1>
+
+        
+
+        <form method="POST" id="edit-profile-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username">Nombre de usuario:</label>
+                <input type="text" class="form-control" id="username" name="username" value="{{ usuario.username }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="nombre">Nombre:</label>
+                <input type="text" class="form-control" id="nombre" name="nombre" value="{{ usuario.nombre }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="apellido">Apellido:</label>
+                <input type="text" class="form-control" id="apellido" name="apellido" value="{{ usuario.apellido }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="is_active">Activo:</label>
+                <select id="is_active" name="is_active" class="form-control">
+                    <option value="True" {% if usuario.is_active %}selected{% endif %}>Sí</option>
+                    <option value="False" {% if not usuario.is_active %}selected{% endif %}>No</option>
+                </select>
+            </div>
+
+            <button type="button" class="btn btn-warning mb-3" id="change-password-btn" onclick="togglePasswordFields()">Modificar contraseña</button>
+
+            <!-- Campos de contraseña -->
+            <div id="password-fields" style="display:none;">
+                <div class="form-group">
+                    <label for="password">Nueva contraseña (mínimo 4 dígitos numéricos):</label>
+                    <input type="password" class="form-control" id="password" name="password" >
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password">Confirmar contraseña:</label>
+                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" >
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function togglePasswordFields() {
+            const passwordFields = document.getElementById('password-fields');
+            // Toggle visibility of the password fields
+            if (passwordFields.style.display === 'none') {
+                passwordFields.style.display = 'block';
+            } else {
+                passwordFields.style.display = 'none';
+            }
+        }
+
+        // Validar el formulario antes de enviarlo
+        $('#edit-profile-form').on('submit', function (e) {
+            const password = $('#password').val();
+            const confirmPassword = $('#confirm_password').val();
+
+            // Verificar que las contraseñas sean numéricas y tengan al menos 4 dígitos
+            const passwordRegex = /^[0-9]{4,}$/;
+
+            if (password && (password !== confirmPassword)) {
+                alert("Las contraseñas no coinciden.");
+                e.preventDefault();  // Evita el envío del formulario
+                return false;
+            }
+
+            if (password && !passwordRegex.test(password)) {
+                alert("La contraseña debe ser numérica y tener al menos 4 dígitos.");
+                e.preventDefault();  // Evita el envío del formulario
+                return false;
+            }
+
+            return true;  // Si pasa las validaciones, el formulario se envía
+        });
+    </script>
+
+</body>
+
+</html>
